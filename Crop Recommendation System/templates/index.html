@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Recommendation System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2ecc71;
+            --secondary-color: #27ae60;
+            --accent-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin: 2rem auto;
+            max-width: 1200px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .form-section {
+            padding: 2rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.25);
+        }
+
+        .btn-predict {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 10px;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+        }
+
+        .result-section {
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 0 0 20px 20px;
+            display: none;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .prediction-badge {
+            background: linear-gradient(135deg, var(--accent-color), #e67e22);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .confidence-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .confidence-fill {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            height: 100%;
+            transition: width 1s ease;
+        }
+
+        .crop-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .feature-range {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="header">
+                <h1><i class="fas fa-seedling"></i> Crop Recommendation System</h1>
+                <p>Get personalized crop recommendations based on soil and climate conditions</p>
+            </div>
+
+            <!-- Input Form -->
+            <div class="form-section">
+                <form id="cropForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <label class="form-label">Nitrogen (N) - kg/ha</label>
+                                <input type="number" class="form-control" id="N" name="N" min="0" max="140" step="1" required>
+                                <div class="feature-range">Range: 0-140 kg/ha</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <label class="form-label">Phosphorus (P) - kg/ha</label>
+                                <input type="number" class="form-control" id="P" name="P" min="5" max="145" step="1" required>
+                                <div class="feature-range">Range: 5-145 kg/ha</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <label class="form-label">Potassium (K) - kg/ha</label>
+                                <input type="number" class="form-control" id="K" name="K" min="5" max="205" step="1" required>
+                                <div class="feature-range">Range: 5-205 kg/ha</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <label class="form-label">Temperature (°C)</label>
+                                <input type="number" class="form-control" id="temperature" name="temperature" min="8" max="44" step="0.1" required>
+                                <div class="feature-range">Range: 8-44°C</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <label class="form-label">Humidity (%)</label>
+                                <input type="number" class="form-control" id="humidity" name="humidity" min="14" max="100" step="0.1" required>
+                                <div class="feature-range">Range: 14-100%</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <label class="form-label">pH Level</label>
+                                <input type="number" class="form-control" id="ph" name="ph" min="3.5" max="10" step="0.1" required>
+                                <div class="feature-range">Range: 3.5-10</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <label class="form-label">Rainfall (mm)</label>
+                                <input type="number" class="form-control" id="rainfall" name="rainfall" min="20" max="300" step="1" required>
+                                <div class="feature-range">Range: 20-300 mm</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <button type="submit" class="btn btn-predict">
+                                    <i class="fas fa-magic"></i> Get Recommendation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Loading Spinner -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing soil and climate conditions...</p>
+                </div>
+
+                <!-- Error Message -->
+                <div class="error-message" id="errorMessage"></div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="result-section" id="resultSection">
+                <div class="result-card">
+                    <h3><i class="fas fa-chart-line"></i> Prediction Results</h3>
+                    
+                    <div class="prediction-badge" id="predictionResult">
+                        Recommended Crop: <span id="cropName"></span>
+                    </div>
+
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceBar"></div>
+                    </div>
+                    <p>Confidence: <strong id="confidenceValue"></strong>%</p>
+
+                    <div class="crop-info" id="cropInfo">
+                        <h5><i class="fas fa-info-circle"></i> About <span id="cropInfoName"></span></h5>
+                        <p id="cropDescription"></p>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="optimalConditions"></div>
+                                <div class="stat-label">Optimal Conditions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="growingSeason"></div>
+                                <div class="stat-label">Growing Season</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="waterRequirement"></div>
+                                <div class="stat-label">Water Requirement</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h4><i class="fas fa-list"></i> All Crop Probabilities</h4>
+                    <div id="allProbabilities"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('cropForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // Collect form data
+            const formData = {
+                N: document.getElementById('N').value,
+                P: document.getElementById('P').value,
+                K: document.getElementById('K').value,
+                temperature: document.getElementById('temperature').value,
+                humidity: document.getElementById('humidity').value,
+                ph: document.getElementById('ph').value,
+                rainfall: document.getElementById('rainfall').value
+            };
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Display results
+                    document.getElementById('cropName').textContent = result.prediction;
+                    document.getElementById('confidenceValue').textContent = result.confidence;
+                    document.getElementById('confidenceBar').style.width = result.confidence + '%';
+                    
+                    // Get crop information
+                    const cropInfoResponse = await fetch(`/get_crop_info/${result.prediction}`);
+                    const cropInfo = await cropInfoResponse.json();
+                    
+                    document.getElementById('cropInfoName').textContent = result.prediction;
+                    document.getElementById('cropDescription').textContent = cropInfo.description;
+                    document.getElementById('optimalConditions').textContent = cropInfo.optimal_conditions;
+                    document.getElementById('growingSeason').textContent = cropInfo.growing_season;
+                    document.getElementById('waterRequirement').textContent = cropInfo.water_requirement;
+                    
+                    // Display all probabilities
+                    const probabilitiesDiv = document.getElementById('allProbabilities');
+                    probabilitiesDiv.innerHTML = '';
+                    
+                    Object.entries(result.all_probabilities)
+                        .sort(([,a], [,b]) => b - a)
+                        .forEach(([crop, prob]) => {
+                            const cropDiv = document.createElement('div');
+                            cropDiv.className = 'd-flex justify-content-between align-items-center mb-2';
+                            cropDiv.innerHTML = `
+                                <span class="text-capitalize">${crop}</span>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress me-2" style="width: 100px; height: 8px;">
+                                        <div class="progress-bar" style="width: ${prob}%"></div>
+                                    </div>
+                                    <span class="badge bg-secondary">${prob}%</span>
+                                </div>
+                            `;
+                            probabilitiesDiv.appendChild(cropDiv);
+                        });
+                    
+                    document.getElementById('resultSection').style.display = 'block';
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = 'Error: ' + error.message;
+                document.getElementById('errorMessage').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+
+        // Add some sample data buttons for testing
+        function setSampleData(data) {
+            Object.keys(data).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = data[key];
+                }
+            });
+        }
+
+        // Add sample data buttons to the form
+        const sampleDataContainer = document.createElement('div');
+        sampleDataContainer.className = 'mt-3';
+        sampleDataContainer.innerHTML = `
+            <p class="text-muted mb-2"><i class="fas fa-flask"></i> Try sample data:</p>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setSampleData({N: 90, P: 42, K: 43, temperature: 20.9, humidity: 75, ph: 5.5, rainfall: 220})">Sample 1</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setSampleData({N: 50, P: 30, K: 40, temperature: 25.0, humidity: 60, ph: 6.5, rainfall: 150})">Sample 2</button>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setSampleData({N: 120, P: 80, K: 100, temperature: 30.0, humidity: 85, ph: 7.0, rainfall: 250})">Sample 3</button>
+            </div>
+        `;
+        document.querySelector('.form-section').appendChild(sampleDataContainer);
+    </script>
+</body>
+</html> 

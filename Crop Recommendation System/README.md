@@ -73,9 +73,16 @@ crop-recommendation-system/
 
 - **Backend**: Flask (Python)
 - **Machine Learning**: RandomForest Classifier (scikit-learn)
+- <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2603586e-8b55-45b0-a40f-214f6331c93b" />
+
+- <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/37299270-b080-45de-81c4-5fbcb645d41c" />
+
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2811ad3f-45b6-4114-bdc0-a136d43edb5b" />
+
 - **Frontend**: Bootstrap 5 + Custom CSS
 - **Deployment**: Railway (optimized)
 
 ## License
 
-This project is open source and available under the MIT License. "# crop-recommendation" 
+This project is open source and available under the MIT License. 
